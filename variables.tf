@@ -137,11 +137,12 @@ variable "net_access_points" {
 ################################################################################
 
 variable "route_tables" {
-  description = "Map of route table definitions. subnet_keys reference keys in the subnets variable. routes define individual route entries with a destination and one target."
+  description = "Map of route table definitions. subnet_keys reference keys in the subnets variable. routes define individual route entries with a destination and one target. Set use_internet_service to true to route via the module's Internet Service, or pass a gateway_id for external gateways."
   type = map(object({
     subnet_keys = optional(list(string), [])
     routes = optional(list(object({
       destination_ip_range = string
+      use_internet_service = optional(bool, false)
       gateway_id           = optional(string)
       nat_key              = optional(string)
       peering_key          = optional(string)

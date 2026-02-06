@@ -47,7 +47,7 @@ resource "outscale_route" "gateway" {
 
   route_table_id       = outscale_route_table.this[each.value.route_table_key].route_table_id
   destination_ip_range = each.value.destination_ip_range
-  gateway_id           = each.value.gateway_id
+  gateway_id           = each.value.use_internet_service ? outscale_internet_service.this[0].internet_service_id : each.value.gateway_id
 }
 
 ################################################################################

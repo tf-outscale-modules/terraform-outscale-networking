@@ -2,37 +2,36 @@
 
 root:
   global:
-    description: Needs description - run /index-standards
+    description: Agent-OS profile with canonical config files (pre-commit, mise, tflint, CI, etc.)
   repo-structure:
-    description: Needs description - run /index-standards
+    description: Standard repository layout and required files for Terraform module projects
 
 global:
   code-style:
-    description: Needs description - run /index-standards
+    description: HCL formatting, block ordering, expressions, and comment conventions
   documentation:
-    description: Needs description - run /index-standards
+    description: README structure, terraform-docs usage, variable descriptions, and examples
   security:
-    description: Needs description - run /index-standards
+    description: Secret management, state security, least privilege, and static analysis
   versioning:
-    description: Needs description - run /index-standards
+    description: Semantic versioning, git tags, and breaking change checklist
 
 terraform:
   module-structure:
-    description: Needs description - run /index-standards
+    description: Standard file layout (versions.tf, variables.tf, outputs.tf, examples/, tests/)
   naming:
-    description: Needs description - run /index-standards
+    description: snake_case naming, "this" convention, common_tags pattern, no type-in-name
   outputs:
-    description: Needs description - run /index-standards
+    description: Output naming, descriptions, grouping by resource, and sensitive marking
   providers:
-    description: Needs description - run /index-standards
+    description: Pessimistic version constraints, no provider blocks in reusable modules
   state:
-    description: Needs description - run /index-standards
+    description: Remote state backends, state key structure, no backend in reusable modules
   tech-stack:
-    description: Needs description - run /index-standards
+    description: Terraform/OpenTofu, native test framework, terraform-docs, CI/CD tooling
   variables:
-    description: Needs description - run /index-standards
+    description: Variable naming, ordering (required first), types, validation blocks, sensitive marking
 
 testing:
   terraform-tests:
-    description: Needs description - run /index-standards
-
+    description: Native .tftest.hcl tests with plan-only assertions, validation rejection, and CI checks

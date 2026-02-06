@@ -206,7 +206,12 @@ run "creates_route_tables" {
     route_tables = {
       public = {
         subnet_keys = ["public_a", "public_b"]
-        routes      = []
+        routes = [
+          {
+            destination_ip_range = "0.0.0.0/0"
+            use_internet_service = true
+          }
+        ]
       }
     }
   }
@@ -306,4 +311,44 @@ run "outputs_empty_maps_when_disabled" {
     condition     = length(output.nic_ids) == 0
     error_message = "nic_ids should be empty when no NICs defined"
   }
+}
+
+################################################################################
+# Validation — Rejects Invalid Input
+################################################################################
+
+run "rejects_invalid_cidr" {
+  command = plan
+
+  variables {
+    ip_range = "not-a-cidr"
+  }
+
+  expect_failures = [
+    var.ip_range,
+  ]
+}
+
+run "rejects_empty_subnets" {
+  command = plan
+
+  variables {
+    subnets = {}
+  }
+
+  expect_failures = [
+    var.subnets,
+  ]
+}
+
+run "rejects_invalid_tenancy" {
+  command = plan
+
+  variables {
+    tenancy = "invalid"
+  }
+
+  expect_failures = [
+    var.tenancy,
+  ]
 }

@@ -31,7 +31,7 @@ locals {
   ]...)
 
   routes_gateway = {
-    for k, v in local.all_routes : k => v if v.gateway_id != null
+    for k, v in local.all_routes : k => v if v.gateway_id != null || v.use_internet_service
   }
 
   routes_nat = {

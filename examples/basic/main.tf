@@ -35,7 +35,7 @@ module "networking" {
       routes = [
         {
           destination_ip_range = "0.0.0.0/0"
-          gateway_id           = "igw-ref"
+          use_internet_service = true
         }
       ]
     }
