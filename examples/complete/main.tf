@@ -59,14 +59,15 @@ module "networking" {
     }
   }
 
-  # Net Peering (example — accepter_net_id must be a real Net ID)
-  enable_net_peerings = true
-  net_peerings = {
-    to_shared_services = {
-      accepter_net_id = "vpc-12345678"
-      auto_accept     = true
-    }
-  }
+  # Net Peering — uncomment and replace with a real Net ID to test
+  # enable_net_peerings = true
+  # net_peerings = {
+  #   to_shared_services = {
+  #     accepter_net_id   = "vpc-REPLACE_ME"  # real Net ID required
+  #     accepter_owner_id = "REPLACE_ME"      # required for cross-account
+  #     auto_accept       = true              # same-account only
+  #   }
+  # }
 
   # Net Access Points
   enable_net_access_points = true
