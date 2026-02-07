@@ -54,6 +54,9 @@ resource "outscale_dhcp_option" "this" {
       value = tags.value
     }
   }
+
+  # Ensure DHCP option is destroyed before the Net so the provider can unlink it
+  depends_on = [outscale_net.this]
 }
 
 resource "outscale_net_attributes" "this" {
