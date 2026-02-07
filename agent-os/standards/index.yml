@@ -24,7 +24,7 @@ terraform:
   naming:
     description: snake_case naming, "this" convention, common_tags pattern, no type-in-name
   outscale-gotchas:
-    description: Outscale API/provider bugs: LB single subnet, peering owner ID, DHCP destroy race
+    description: "Outscale API/provider bugs: LB single subnet, peering owner ID, DHCP destroy race"
   outputs:
     description: Output naming, descriptions, grouping by resource, and sensitive marking
   providers:
