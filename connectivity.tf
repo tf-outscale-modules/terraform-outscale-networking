@@ -81,8 +81,9 @@ resource "outscale_nat_service" "this" {
 resource "outscale_net_peering" "this" {
   for_each = var.enable_net_peerings ? var.net_peerings : {}
 
-  accepter_net_id = each.value.accepter_net_id
-  source_net_id   = outscale_net.this.net_id
+  accepter_net_id   = each.value.accepter_net_id
+  accepter_owner_id = each.value.accepter_owner_id
+  source_net_id     = outscale_net.this.net_id
 
   dynamic "tags" {
     for_each = merge(local.common_tags, { Name = each.key })

@@ -109,10 +109,11 @@ variable "enable_net_peerings" {
 }
 
 variable "net_peerings" {
-  description = "Map of Net peering definitions. accepter_net_id is the ID of the remote Net. Set auto_accept to true to automatically accept the peering (only works for same-account peerings)."
+  description = "Map of Net peering definitions. accepter_net_id is the ID of the remote Net. accepter_owner_id is required for cross-account peerings. Set auto_accept to true to automatically accept the peering (only works for same-account peerings)."
   type = map(object({
-    accepter_net_id = string
-    auto_accept     = optional(bool, false)
+    accepter_net_id   = string
+    accepter_owner_id = optional(string)
+    auto_accept       = optional(bool, false)
   }))
   default = {}
 }

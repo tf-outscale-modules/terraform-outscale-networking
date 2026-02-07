@@ -101,13 +101,13 @@ module "networking" {
 
   main_route_table_key = "private"
 
-  # Load Balancers
+  # Load Balancers (Outscale supports one subnet per load balancer)
   enable_load_balancers = true
   load_balancers = {
     web = {
       load_balancer_name = "web-lb"
       load_balancer_type = "internet-facing"
-      subnet_keys        = ["public_a", "public_b"]
+      subnet_keys        = ["public_a"]
       listeners = [
         {
           backend_port           = 80
