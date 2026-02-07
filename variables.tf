@@ -29,6 +29,12 @@ variable "subnets" {
 # Optional — Core
 ################################################################################
 
+variable "name" {
+  description = "Name tag for the Net"
+  type        = string
+  default     = null
+}
+
 variable "tenancy" {
   description = "The tenancy of VMs launched in the Net ('default' or 'dedicated')"
   type        = string

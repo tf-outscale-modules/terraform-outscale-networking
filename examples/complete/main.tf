@@ -14,6 +14,7 @@ provider "outscale" {}
 module "networking" {
   source = "../../"
 
+  name     = "complete-example"
   ip_range = "10.0.0.0/16"
   tenancy  = "default"
 
@@ -115,7 +116,21 @@ module "networking" {
           backend_protocol       = "HTTP"
           load_balancer_port     = 80
           load_balancer_protocol = "HTTP"
+        },
+        {
+          backend_port           = 90
+          backend_protocol       = "HTTP"
+          load_balancer_port     = 90
+          load_balancer_protocol = "HTTP"
         }
+        # Uncomment to add HTTPS — requires a valid server certificate ID
+        # {
+        #   backend_port           = 443
+        #   backend_protocol       = "HTTP"
+        #   load_balancer_port     = 443
+        #   load_balancer_protocol = "HTTPS"
+        #   server_certificate_id  = "orn:ows:idauth::REPLACE_ME:server-certificate/my-cert"
+        # }
       ]
       tags = { Service = "web" }
     }

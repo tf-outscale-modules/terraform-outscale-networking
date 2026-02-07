@@ -7,7 +7,7 @@ resource "outscale_net" "this" {
   tenancy  = var.tenancy
 
   dynamic "tags" {
-    for_each = local.common_tags
+    for_each = merge(local.common_tags, var.name != null ? { Name = var.name } : {})
     content {
       key   = tags.key
       value = tags.value

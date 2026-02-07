@@ -38,6 +38,7 @@ Net with two public subnets, an Internet Service, and a route table:
 module "networking" {
   source = "git::https://gitlab.com/leminnov/terraform/modules/outscale-network.git?ref=v0.1.0"
 
+  name     = "my-network"
   ip_range = "10.0.0.0/16"
 
   subnets = {
@@ -84,6 +85,7 @@ All connectivity and service resources are controlled by `enable_*` flags:
 module "networking" {
   source = "git::https://gitlab.com/leminnov/terraform/modules/outscale-network.git?ref=v0.1.0"
 
+  name     = "minimal-network"
   ip_range = "10.0.0.0/16"
   subnets = {
     main = {
@@ -177,9 +179,10 @@ No modules.
 | <a name="input_ip_range"></a> [ip\_range](#input\_ip\_range) | The IP range for the Net, in CIDR notation (e.g., '10.0.0.0/16') | `string` | n/a | yes |
 | <a name="input_load_balancers"></a> [load\_balancers](#input\_load\_balancers) | Map of load balancer definitions | <pre>map(object({<br/>    load_balancer_name = string<br/>    load_balancer_type = optional(string, "internet-facing")<br/>    subnet_keys        = optional(list(string), [])<br/>    security_group_ids = optional(list(string), [])<br/>    listeners = list(object({<br/>      backend_port           = number<br/>      backend_protocol       = string<br/>      load_balancer_port     = number<br/>      load_balancer_protocol = string<br/>      server_certificate_id  = optional(string)<br/>    }))<br/>    tags = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
 | <a name="input_main_route_table_key"></a> [main\_route\_table\_key](#input\_main\_route\_table\_key) | Key from route\_tables to set as the main route table for the Net | `string` | `null` | no |
+| <a name="input_name"></a> [name](#input\_name) | Name tag for the Net | `string` | `null` | no |
 | <a name="input_nat_services"></a> [nat\_services](#input\_nat\_services) | Map of NAT service definitions. Each key is a logical name, subnet\_key references a key in the subnets variable. A Public IP is auto-created for each NAT service. | <pre>map(object({<br/>    subnet_key = string<br/>  }))</pre> | `{}` | no |
 | <a name="input_net_access_points"></a> [net\_access\_points](#input\_net\_access\_points) | Map of Net access point definitions. service\_name is the Outscale service name (e.g., 'com.outscale.eu-west-2.api'). route\_table\_keys reference keys in the route\_tables variable. | <pre>map(object({<br/>    service_name     = string<br/>    route_table_keys = optional(list(string), [])<br/>  }))</pre> | `{}` | no |
-| <a name="input_net_peerings"></a> [net\_peerings](#input\_net\_peerings) | Map of Net peering definitions. accepter\_net\_id is the ID of the remote Net. accepter\_owner\_id is required for cross-account peerings. Set auto\_accept to true to automatically accept the peering (only works for same-account peerings). | <pre>map(object({<br/>    accepter_net_id  = string<br/>    accepter_owner_id = optional(string)<br/>    auto_accept      = optional(bool, false)<br/>  }))</pre> | `{}` | no |
+| <a name="input_net_peerings"></a> [net\_peerings](#input\_net\_peerings) | Map of Net peering definitions. accepter\_net\_id is the ID of the remote Net. accepter\_owner\_id is required for cross-account peerings. Set auto\_accept to true to automatically accept the peering (only works for same-account peerings). | <pre>map(object({<br/>    accepter_net_id   = string<br/>    accepter_owner_id = optional(string)<br/>    auto_accept       = optional(bool, false)<br/>  }))</pre> | `{}` | no |
 | <a name="input_nics"></a> [nics](#input\_nics) | Map of Network Interface Card (NIC) definitions | <pre>map(object({<br/>    subnet_key         = string<br/>    description        = optional(string)<br/>    security_group_ids = optional(list(string), [])<br/>    private_ips = optional(list(object({<br/>      private_ip = string<br/>      is_primary = bool<br/>    })), [])<br/>  }))</pre> | `{}` | no |
 | <a name="input_public_ips"></a> [public\_ips](#input\_public\_ips) | Map of standalone Public IP (Elastic IP) definitions | <pre>map(object({<br/>    tags = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
 | <a name="input_route_tables"></a> [route\_tables](#input\_route\_tables) | Map of route table definitions. subnet\_keys reference keys in the subnets variable. routes define individual route entries with a destination and one target. Set use\_internet\_service to true to route via the module's Internet Service, or pass a gateway\_id for external gateways. | <pre>map(object({<br/>    subnet_keys = optional(list(string), [])<br/>    routes = optional(list(object({<br/>      destination_ip_range = string<br/>      use_internet_service = optional(bool, false)<br/>      gateway_id           = optional(string)<br/>      nat_key              = optional(string)<br/>      peering_key          = optional(string)<br/>      nic_key              = optional(string)<br/>    })), [])<br/>  }))</pre> | `{}` | no |
