@@ -26,7 +26,7 @@ Terraform module for managing Outscale networking resources — Nets, Subnets, I
 | Name | Version |
 |------|---------|
 | terraform | >= 1.10 |
-| outscale | ~> 1.0 |
+| outscale | ~> 1.8 |
 
 ## Usage
 
@@ -125,13 +125,13 @@ module "networking" {
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
-| <a name="requirement_outscale"></a> [outscale](#requirement\_outscale) | ~> 1.0 |
+| <a name="requirement_outscale"></a> [outscale](#requirement\_outscale) | ~> 1.8 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_outscale"></a> [outscale](#provider\_outscale) | ~> 1.0 |
+| <a name="provider_outscale"></a> [outscale](#provider\_outscale) | ~> 1.8 |
 
 ## Modules
 
@@ -240,7 +240,7 @@ This module is provided "as is", without warranty of any kind, express or implie
 [terraform-badge]: https://img.shields.io/badge/Terraform-%3E%3D1.10-623CE4
 [terraform-url]: https://www.terraform.io
 
-[provider-badge]: https://img.shields.io/badge/Outscale%20Provider-~%3E1.0-blue
+[provider-badge]: https://img.shields.io/badge/Outscale%20Provider-~%3E1.8-blue
 [provider-url]: https://registry.terraform.io/providers/outscale/outscale/latest
 
 [release-badge]: https://img.shields.io/gitlab/v/release/leminnov/terraform/modules/outscale-network?include_prereleases&sort=semver
