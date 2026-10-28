@@ -36,7 +36,7 @@ Net with two public subnets, an Internet Service, and a route table:
 
 ```hcl
 module "networking" {
-  source = "git::https://gitlab.com/leminnov/terraform/modules/outscale-network.git?ref=v0.1.0"
+  source = "git::https://gitlab.com/leminnov/terraform/modules/outscale-networking.git?ref=v0.1.0"
 
   name     = "my-network"
   ip_range = "10.0.0.0/16"
@@ -79,11 +79,11 @@ See [`examples/complete/`](examples/complete/) for a full example with all featu
 
 ### Conditional Creation
 
-All connectivity and service resources are controlled by `enable_*` flags:
+Internet Service, NAT services, peerings, access points and load balancers are controlled by `enable_*` flags. `public_ips`, `route_tables` and `nics` have no flag: they are created whenever their map is not empty.
 
 ```hcl
 module "networking" {
-  source = "git::https://gitlab.com/leminnov/terraform/modules/outscale-network.git?ref=v0.1.0"
+  source = "git::https://gitlab.com/leminnov/terraform/modules/outscale-networking.git?ref=v0.1.0"
 
   name     = "minimal-network"
   ip_range = "10.0.0.0/16"
@@ -173,7 +173,7 @@ No modules.
 | <a name="input_dhcp_ntp_servers"></a> [dhcp\_ntp\_servers](#input\_dhcp\_ntp\_servers) | List of NTP server IPs for the DHCP options set | `list(string)` | `null` | no |
 | <a name="input_enable_internet_service"></a> [enable\_internet\_service](#input\_enable\_internet\_service) | Whether to create an Internet Service and attach it to the Net | `bool` | `false` | no |
 | <a name="input_enable_load_balancers"></a> [enable\_load\_balancers](#input\_enable\_load\_balancers) | Whether to create load balancers | `bool` | `false` | no |
-| <a name="input_enable_nat_services"></a> [enable\_nat\_services](#input\_enable\_nat\_services) | Whether to create NAT services (requires enable\_internet\_service = true) | `bool` | `false` | no |
+| <a name="input_enable_nat_services"></a> [enable\_nat\_services](#input\_enable\_nat\_services) | Whether to create NAT services (expects enable\_internet\_service = true, otherwise a warning is raised) | `bool` | `false` | no |
 | <a name="input_enable_net_access_points"></a> [enable\_net\_access\_points](#input\_enable\_net\_access\_points) | Whether to create Net access points (VPC endpoints) | `bool` | `false` | no |
 | <a name="input_enable_net_peerings"></a> [enable\_net\_peerings](#input\_enable\_net\_peerings) | Whether to create Net peering connections | `bool` | `false` | no |
 | <a name="input_ip_range"></a> [ip\_range](#input\_ip\_range) | The IP range for the Net, in CIDR notation (e.g., '10.0.0.0/16') | `string` | n/a | yes |
@@ -185,7 +185,7 @@ No modules.
 | <a name="input_net_peerings"></a> [net\_peerings](#input\_net\_peerings) | Map of Net peering definitions. accepter\_net\_id is the ID of the remote Net. accepter\_owner\_id is required for cross-account peerings. Set auto\_accept to true to automatically accept the peering (only works for same-account peerings). | <pre>map(object({<br/>    accepter_net_id   = string<br/>    accepter_owner_id = optional(string)<br/>    auto_accept       = optional(bool, false)<br/>  }))</pre> | `{}` | no |
 | <a name="input_nics"></a> [nics](#input\_nics) | Map of Network Interface Card (NIC) definitions | <pre>map(object({<br/>    subnet_key         = string<br/>    description        = optional(string)<br/>    security_group_ids = optional(list(string), [])<br/>    private_ips = optional(list(object({<br/>      private_ip = string<br/>      is_primary = bool<br/>    })), [])<br/>  }))</pre> | `{}` | no |
 | <a name="input_public_ips"></a> [public\_ips](#input\_public\_ips) | Map of standalone Public IP (Elastic IP) definitions | <pre>map(object({<br/>    tags = optional(map(string), {})<br/>  }))</pre> | `{}` | no |
-| <a name="input_route_tables"></a> [route\_tables](#input\_route\_tables) | Map of route table definitions. subnet\_keys reference keys in the subnets variable. routes define individual route entries with a destination and one target. Set use\_internet\_service to true to route via the module's Internet Service, or pass a gateway\_id for external gateways. | <pre>map(object({<br/>    subnet_keys = optional(list(string), [])<br/>    routes = optional(list(object({<br/>      destination_ip_range = string<br/>      use_internet_service = optional(bool, false)<br/>      gateway_id           = optional(string)<br/>      nat_key              = optional(string)<br/>      peering_key          = optional(string)<br/>      nic_key              = optional(string)<br/>    })), [])<br/>  }))</pre> | `{}` | no |
+| <a name="input_route_tables"></a> [route\_tables](#input\_route\_tables) | Map of route table definitions. subnet\_keys reference keys in the subnets variable. routes define individual route entries with a destination and at most one target (use\_internet\_service or gateway\_id, nat\_key, peering\_key, or nic\_key). Set use\_internet\_service to true to route via the module's Internet Service (requires enable\_internet\_service = true), or pass a gateway\_id for external gateways. | <pre>map(object({<br/>    subnet_keys = optional(list(string), [])<br/>    routes = optional(list(object({<br/>      destination_ip_range = string<br/>      use_internet_service = optional(bool, false)<br/>      gateway_id           = optional(string)<br/>      nat_key              = optional(string)<br/>      peering_key          = optional(string)<br/>      nic_key              = optional(string)<br/>    })), [])<br/>  }))</pre> | `{}` | no |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | Map of subnet definitions. Each key is a logical name, each value defines the subnet's CIDR and subregion. | <pre>map(object({<br/>    ip_range       = string<br/>    subregion_name = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Map of tags to apply to all resources that support tagging | `map(string)` | `{}` | no |
 | <a name="input_tenancy"></a> [tenancy](#input\_tenancy) | The tenancy of VMs launched in the Net ('default' or 'dedicated') | `string` | `"default"` | no |
