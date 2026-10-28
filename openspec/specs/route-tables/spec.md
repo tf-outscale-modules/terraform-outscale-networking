@@ -35,7 +35,7 @@ The module SHALL make the route table named by `main_route_table_key` (default `
 - **THEN** the plan contains no main route table link
 
 ### Requirement: Routes through the Internet Service or a gateway
-A route with `use_internet_service = true` SHALL target the Internet Service created by the module; a route with `gateway_id` set SHALL target that gateway. The route SHALL use the entry's `destination_ip_range`.
+A route with `use_internet_service = true` SHALL target the Internet Service created by the module and requires `enable_internet_service = true`; a route with `gateway_id` set SHALL target that gateway. The route SHALL use the entry's `destination_ip_range`.
 
 #### Scenario: Default route through the Internet Service
 - **WHEN** `enable_internet_service = true` and a route of table `public` sets `destination_ip_range = "0.0.0.0/0"` and `use_internet_service = true`
@@ -44,6 +44,10 @@ A route with `use_internet_service = true` SHALL target the Internet Service cre
 #### Scenario: Route through an external gateway
 - **WHEN** a route sets `gateway_id = "vgw-12345678"`
 - **THEN** the plan contains one route to that gateway
+
+#### Scenario: Internet Service route without the Internet Service
+- **WHEN** a route sets `use_internet_service = true` and `enable_internet_service` is false
+- **THEN** the plan fails with "A route with use_internet_service = true requires enable_internet_service = true."
 
 ### Requirement: Routes through a NAT service, a peering or a NIC
 A route with `nat_key` set SHALL target the NAT service of that key, with `peering_key` the peering of that key and with `nic_key` the NIC of that key.
@@ -59,3 +63,14 @@ A route with `nat_key` set SHALL target the NAT service of that key, with `peeri
 #### Scenario: Route through a NIC
 - **WHEN** NIC `appliance` is declared and a route sets `destination_ip_range = "10.2.0.0/16"` and `nic_key = "appliance"`
 - **THEN** the plan contains one route to that range through the NIC `appliance`
+
+### Requirement: One target per route
+A route SHALL set at most one target among `use_internet_service`/`gateway_id`, `nat_key`, `peering_key` and `nic_key`. A route with several targets SHALL be rejected, and a route with no target SHALL create nothing and raise a warning.
+
+#### Scenario: Several targets
+- **WHEN** a route sets both `nat_key = "egress"` and `nic_key = "appliance"`
+- **THEN** the plan fails with "Each route must set at most one target: use_internet_service or gateway_id, nat_key, peering_key, or nic_key."
+
+#### Scenario: No target
+- **WHEN** a route sets only `destination_ip_range`
+- **THEN** the plan succeeds, contains no route for it and warns that the route has no target
