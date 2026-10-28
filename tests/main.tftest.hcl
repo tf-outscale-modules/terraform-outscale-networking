@@ -352,3 +352,112 @@ run "rejects_invalid_tenancy" {
     var.tenancy,
   ]
 }
+
+################################################################################
+# Routes and NAT services — validations and checks
+################################################################################
+
+run "rejects_route_with_several_targets" {
+  command = plan
+
+  variables {
+    route_tables = {
+      private = {
+        routes = [
+          {
+            destination_ip_range = "0.0.0.0/0"
+            nat_key              = "egress"
+            nic_key              = "appliance"
+          }
+        ]
+      }
+    }
+  }
+
+  expect_failures = [
+    var.route_tables,
+  ]
+}
+
+run "rejects_internet_service_route_without_internet_service" {
+  command = plan
+
+  variables {
+    route_tables = {
+      public = {
+        routes = [
+          {
+            destination_ip_range = "0.0.0.0/0"
+            use_internet_service = true
+          }
+        ]
+      }
+    }
+  }
+
+  expect_failures = [
+    var.route_tables,
+  ]
+}
+
+run "warns_route_without_target" {
+  command = plan
+
+  variables {
+    route_tables = {
+      public = {
+        routes = [
+          {
+            destination_ip_range = "0.0.0.0/0"
+          }
+        ]
+      }
+    }
+  }
+
+  expect_failures = [
+    check.routes_have_target,
+  ]
+}
+
+run "warns_nat_services_without_internet_service" {
+  command = plan
+
+  variables {
+    enable_nat_services = true
+    nat_services = {
+      egress = { subnet_key = "public_a" }
+    }
+  }
+
+  expect_failures = [
+    check.nat_services_need_internet_service,
+  ]
+}
+
+run "accepts_nat_route_with_internet_service" {
+  command = plan
+
+  variables {
+    enable_internet_service = true
+    enable_nat_services     = true
+    nat_services = {
+      egress = { subnet_key = "public_a" }
+    }
+    route_tables = {
+      private = {
+        routes = [
+          {
+            destination_ip_range = "0.0.0.0/0"
+            nat_key              = "egress"
+          }
+        ]
+      }
+    }
+  }
+
+  assert {
+    condition     = length(outscale_route.nat) == 1
+    error_message = "Expected 1 NAT route"
+  }
+}

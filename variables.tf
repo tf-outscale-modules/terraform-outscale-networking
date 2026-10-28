@@ -87,7 +87,7 @@ variable "enable_internet_service" {
 }
 
 variable "enable_nat_services" {
-  description = "Whether to create NAT services (requires enable_internet_service = true)"
+  description = "Whether to create NAT services (expects enable_internet_service = true, otherwise a warning is raised)"
   type        = bool
   default     = false
 }
@@ -144,7 +144,7 @@ variable "net_access_points" {
 ################################################################################
 
 variable "route_tables" {
-  description = "Map of route table definitions. subnet_keys reference keys in the subnets variable. routes define individual route entries with a destination and one target. Set use_internet_service to true to route via the module's Internet Service, or pass a gateway_id for external gateways."
+  description = "Map of route table definitions. subnet_keys reference keys in the subnets variable. routes define individual route entries with a destination and at most one target (use_internet_service or gateway_id, nat_key, peering_key, or nic_key). Set use_internet_service to true to route via the module's Internet Service (requires enable_internet_service = true), or pass a gateway_id for external gateways."
   type = map(object({
     subnet_keys = optional(list(string), [])
     routes = optional(list(object({
@@ -157,6 +157,23 @@ variable "route_tables" {
     })), [])
   }))
   default = {}
+
+  validation {
+    condition = alltrue(flatten([
+      for rt in var.route_tables : [
+        for route in rt.routes :
+        (route.use_internet_service || route.gateway_id != null ? 1 : 0) + (route.nat_key != null ? 1 : 0) + (route.peering_key != null ? 1 : 0) + (route.nic_key != null ? 1 : 0) <= 1
+      ]
+    ]))
+    error_message = "Each route must set at most one target: use_internet_service or gateway_id, nat_key, peering_key, or nic_key."
+  }
+
+  validation {
+    condition = var.enable_internet_service || !anytrue(flatten([
+      for rt in var.route_tables : [for route in rt.routes : route.use_internet_service]
+    ]))
+    error_message = "A route with use_internet_service = true requires enable_internet_service = true."
+  }
 }
 
 variable "main_route_table_key" {
