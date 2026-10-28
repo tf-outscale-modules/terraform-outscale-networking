@@ -220,10 +220,12 @@ No modules.
 
 ## Contributing
 
+Changes are planned with [OpenSpec](https://github.com/Fission-AI/OpenSpec): `openspec/specs/` is the module's current contract and [AGENTS.md](AGENTS.md) routes to the engineering standards. Behaviour changes, new inputs, outputs or resources go through a change proposal (`/openspec-propose`) before any code.
+
 1. Fork the repository
 2. Create a feature branch from `develop`
-3. Run `pre-commit install` to set up git hooks
-4. Make your changes and ensure all checks pass: `pre-commit run -a`
+3. Run `pre-commit install` to set up git hooks, and `mise run spec-setup` once per machine to register the OpenSpec standards stores
+4. Make your changes and ensure all checks pass: `pre-commit run -a` and `mise run spec-validate`
 5. Submit a merge request
 
 ## License
