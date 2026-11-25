@@ -461,3 +461,190 @@ run "accepts_nat_route_with_internet_service" {
     error_message = "Expected 1 NAT route"
   }
 }
+
+################################################################################
+# Load balancer security options and cross-account peering
+################################################################################
+
+run "load_balancer_default_keeps_subnets_without_subregions" {
+  command = plan
+
+  variables {
+    enable_load_balancers = true
+    load_balancers = {
+      web = {
+        load_balancer_name = "web-lb"
+        subnet_keys        = ["public_a"]
+        listeners = [{
+          backend_port           = 80
+          backend_protocol       = "HTTP"
+          load_balancer_port     = 80
+          load_balancer_protocol = "HTTP"
+        }]
+      }
+    }
+  }
+
+  assert {
+    condition     = length(outscale_load_balancer.this["web"].subnets) == 1
+    error_message = "A default load balancer must plan its subnet; the plan succeeding proves no subregion_names conflict"
+  }
+}
+
+run "creates_load_balancer_with_secured_cookies_and_public_ip" {
+  command = plan
+
+  variables {
+    enable_load_balancers = true
+    public_ips            = { web_lb = {} }
+    load_balancers = {
+      web = {
+        load_balancer_name = "web-lb"
+        subnet_keys        = ["public_a"]
+        secured_cookies    = true
+        public_ip_key      = "web_lb"
+        listeners = [{
+          backend_port           = 80
+          backend_protocol       = "HTTP"
+          load_balancer_port     = 80
+          load_balancer_protocol = "HTTP"
+        }]
+      }
+    }
+  }
+
+  assert {
+    condition     = outscale_load_balancer.this["web"].secured_cookies == true
+    error_message = "secured_cookies should be planned as true"
+  }
+
+  assert {
+    condition     = length(outscale_public_ip.this) == 1
+    error_message = "The referenced public IP should be planned"
+  }
+}
+
+run "creates_subregion_load_balancer" {
+  command = plan
+
+  variables {
+    enable_load_balancers = true
+    load_balancers = {
+      web = {
+        load_balancer_name = "web-lb"
+        subregion_names    = ["eu-west-2a"]
+        listeners = [{
+          backend_port           = 80
+          backend_protocol       = "HTTP"
+          load_balancer_port     = 80
+          load_balancer_protocol = "HTTP"
+        }]
+      }
+    }
+  }
+
+  assert {
+    condition     = outscale_load_balancer.this["web"].subregion_names == tolist(["eu-west-2a"])
+    error_message = "A subregion load balancer should plan the subregion; the plan succeeding proves subnets is not sent as an empty list"
+  }
+}
+
+run "rejects_load_balancer_with_subnets_and_subregions" {
+  command = plan
+
+  variables {
+    enable_load_balancers = true
+    load_balancers = {
+      web = {
+        load_balancer_name = "web-lb"
+        subnet_keys        = ["public_a"]
+        subregion_names    = ["eu-west-2a"]
+        listeners          = []
+      }
+    }
+  }
+
+  expect_failures = [
+    var.load_balancers,
+  ]
+}
+
+run "rejects_public_ip_on_internal_load_balancer" {
+  command = plan
+
+  variables {
+    enable_load_balancers = true
+    public_ips            = { web_lb = {} }
+    load_balancers = {
+      web = {
+        load_balancer_name = "web-lb"
+        load_balancer_type = "internal"
+        subnet_keys        = ["public_a"]
+        public_ip_key      = "web_lb"
+        listeners          = []
+      }
+    }
+  }
+
+  expect_failures = [
+    var.load_balancers,
+  ]
+}
+
+run "rejects_unknown_public_ip_key" {
+  command = plan
+
+  variables {
+    enable_load_balancers = true
+    load_balancers = {
+      web = {
+        load_balancer_name = "web-lb"
+        subnet_keys        = ["public_a"]
+        public_ip_key      = "missing"
+        listeners          = []
+      }
+    }
+  }
+
+  expect_failures = [
+    var.load_balancers,
+  ]
+}
+
+run "creates_cross_account_peering" {
+  command = plan
+
+  variables {
+    enable_net_peerings = true
+    net_peerings = {
+      shared = {
+        accepter_net_id       = "vpc-12345678"
+        accepter_owner_id     = "210987654321"
+        source_net_account_id = "123456789012"
+      }
+    }
+  }
+
+  assert {
+    condition     = outscale_net_peering.this["shared"].source_net_account_id == "123456789012" && length(outscale_net_peering_acceptation.this) == 0
+    error_message = "The peering should plan the source account and no acceptation"
+  }
+}
+
+run "rejects_malformed_source_net_account_id" {
+  command = plan
+
+  variables {
+    enable_net_peerings = true
+    net_peerings = {
+      shared = {
+        accepter_net_id       = "vpc-12345678"
+        source_net_account_id = "not-an-account"
+      }
+    }
+  }
+
+  expect_failures = [
+    var.net_peerings,
+  ]
+}
