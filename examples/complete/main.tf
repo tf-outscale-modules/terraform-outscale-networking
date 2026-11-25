@@ -58,6 +58,9 @@ module "networking" {
     bastion = {
       tags = { Purpose = "bastion-host" }
     }
+    web_lb = {
+      tags = { Purpose = "web-load-balancer" }
+    }
   }
 
   # Net Peering — uncomment and replace with a real Net ID to test
@@ -66,6 +69,8 @@ module "networking" {
   #   to_shared_services = {
   #     accepter_net_id   = "vpc-REPLACE_ME"  # real Net ID required
   #     accepter_owner_id = "REPLACE_ME"      # required for cross-account
+  #     # Cross-account: owner of this Net (12 digits); the other account must accept the peering itself
+  #     source_net_account_id = "REPLACE_ME"
   #     auto_accept       = true              # same-account only
   #   }
   # }
@@ -110,6 +115,8 @@ module "networking" {
       load_balancer_name = "web-lb"
       load_balancer_type = "internet-facing"
       subnet_keys        = ["public_a"]
+      secured_cookies    = true
+      public_ip_key      = "web_lb"
       listeners = [
         {
           backend_port           = 80

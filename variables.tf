@@ -115,13 +115,19 @@ variable "enable_net_peerings" {
 }
 
 variable "net_peerings" {
-  description = "Map of Net peering definitions. accepter_net_id is the ID of the remote Net. accepter_owner_id is required for cross-account peerings. Set auto_accept to true to automatically accept the peering (only works for same-account peerings)."
+  description = "Map of Net peering definitions. accepter_net_id is the ID of the remote Net. accepter_owner_id is required for cross-account peerings, together with source_net_account_id (the 12-digit account that owns this module's Net); changing source_net_account_id replaces the peering. Set auto_accept to true to automatically accept the peering (only works for same-account peerings). The accepter side of a cross-account peering belongs to the other account: it must accept the peering itself and cannot be managed by this module."
   type = map(object({
-    accepter_net_id   = string
-    accepter_owner_id = optional(string)
-    auto_accept       = optional(bool, false)
+    accepter_net_id       = string
+    accepter_owner_id     = optional(string)
+    source_net_account_id = optional(string)
+    auto_accept           = optional(bool, false)
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for v in values(var.net_peerings) : v.source_net_account_id == null ? true : can(regex("^[0-9]{12}$", v.source_net_account_id))])
+    error_message = "source_net_account_id must be a 12-digit Outscale account id."
+  }
 }
 
 variable "enable_net_access_points" {
@@ -193,12 +199,15 @@ variable "enable_load_balancers" {
 }
 
 variable "load_balancers" {
-  description = "Map of load balancer definitions"
+  description = "Map of load balancer definitions. subnet_keys reference keys in the subnets variable. secured_cookies enables secure cookies. public_ip_key references a key in public_ips to give an internet-facing load balancer a fixed public IP. subregion_names places a load balancer outside a Net and excludes subnet_keys; changing it replaces the load balancer. Unsetting secured_cookies or public_ip_key later does not revert them: set the new value explicitly."
   type = map(object({
     load_balancer_name = string
     load_balancer_type = optional(string, "internet-facing")
     subnet_keys        = optional(list(string), [])
     security_group_ids = optional(list(string), [])
+    secured_cookies    = optional(bool)
+    public_ip_key      = optional(string)
+    subregion_names    = optional(list(string))
     listeners = list(object({
       backend_port           = number
       backend_protocol       = string
@@ -209,6 +218,21 @@ variable "load_balancers" {
     tags = optional(map(string), {})
   }))
   default = {}
+
+  validation {
+    condition     = alltrue([for v in values(var.load_balancers) : v.subregion_names == null || length(v.subnet_keys) == 0])
+    error_message = "subnet_keys and subregion_names are mutually exclusive: use subnet_keys for a load balancer in a Net or subregion_names outside a Net."
+  }
+
+  validation {
+    condition     = alltrue([for v in values(var.load_balancers) : v.public_ip_key == null || v.load_balancer_type == "internet-facing"])
+    error_message = "public_ip_key requires load_balancer_type = \"internet-facing\"."
+  }
+
+  validation {
+    condition     = alltrue([for v in values(var.load_balancers) : v.public_ip_key == null ? true : contains(keys(var.public_ips), v.public_ip_key)])
+    error_message = "public_ip_key must be a key of public_ips."
+  }
 }
 
 variable "nics" {
