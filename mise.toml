@@ -1,0 +1,67 @@
+[settings]
+auto_install = true
+
+[tools]
+pre-commit = '4.3'
+git-cliff = '2.7.0'
+age = '1.2'
+sops = '3.11'
+shfmt = '3.12'
+yamlfmt = '0.20'
+opentofu = '1.11'
+terraform-docs = '0.21.0'
+tflint = '0.56.0'
+python = '3.13'
+# Runtime of the openspec CLI and required by mise's npm backend to install
+# it; same major as the node image of .gitlab/specs.yml.
+node = '24.22.1'
+# Spec-driven development CLI (openspec/, .claude/skills/openspec-*). Keep
+# equal to OPENSPEC_VERSION in the CI variables.
+"npm:@fission-ai/openspec" = '1.14.3'
+
+[tasks.rm-cache]
+run = 'find . -type d -name ".terramate-cache" -prune -exec rm -rf {} \;'
+
+[tasks.rm-terraform]
+run = 'find . -type d -name ".terraform" -prune -exec rm -rf {} \;'
+
+[tasks.rm-lock]
+run = 'find . -type f -name ".terraform.lock.hcl" -prune -exec rm -rf {} \;'
+
+[tasks.rm-all]
+run = '''
+find . -type d -name ".terramate-cache" -prune -exec rm -rf {} \;
+find . -type d -name ".terraform" -prune -exec rm -rf {} \;
+find . -type f -name ".terraform.lock.hcl" -prune -exec rm -rf {} \;
+find . -type f -name "terraform.tfstate*" -prune -exec rm -rf {} \;
+'''
+
+[tasks.changelog]
+description = "Update CHANGELOG.md (fetches all tags first)"
+run = '''
+git-cliff --config .cliff.toml --output CHANGELOG.md
+'''
+
+[tasks."test:examples"]
+description = "Init and validate all examples"
+run = '''
+for dir in examples/*/; do
+  echo "==> Validating $dir"
+  tofu -chdir="$dir" init -upgrade -backend=false
+  tofu -chdir="$dir" validate
+done
+'''
+
+[tasks.test]
+description = "Plan-mode unit tests"
+run = 'tofu init -backend=false && tofu test'
+
+[tasks.spec-validate]
+description = "Validate OpenSpec specs and change proposals (openspec validate --all --strict)"
+run = 'openspec validate --all --strict'
+
+# The stores are the `references:` of openspec/config.yaml; registered once per
+# machine, reusing a ghorg checkout or cloning into ${OPENSPEC_STORES_DIR:-~/openspec}.
+[tasks.spec-setup]
+description = "Register the OpenSpec stores referenced by openspec/config.yaml (clone if needed), then openspec doctor"
+run = 'scripts/openspec-setup.sh'
