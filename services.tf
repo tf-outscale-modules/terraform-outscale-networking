@@ -8,10 +8,14 @@ resource "outscale_load_balancer" "this" {
   load_balancer_name = each.value.load_balancer_name
   load_balancer_type = each.value.load_balancer_type
   security_groups    = length(each.value.security_group_ids) > 0 ? each.value.security_group_ids : null
+  secured_cookies    = each.value.secured_cookies
+  subregion_names    = each.value.subregion_names
+  public_ip          = each.value.public_ip_key == null ? null : outscale_public_ip.this[each.value.public_ip_key].public_ip
 
-  subnets = [
+  # null (not []) when empty: the provider treats an empty list as set and would conflict with subregion_names
+  subnets = length(each.value.subnet_keys) > 0 ? [
     for sk in each.value.subnet_keys : outscale_subnet.this[sk].subnet_id
-  ]
+  ] : null
 
   dynamic "listeners" {
     for_each = each.value.listeners
